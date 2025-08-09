@@ -1,41 +1,29 @@
-import librosa
 import argparse
+from features import extract_mfcc_features, extract_embedding_features, dtw_cosine_normalized_distance
 
-def extract_features(
-    path,
-    sr=16000,
-    n_mfcc=13,
-    frame_length=400,
-    hop_length=160,
-):
-    y, _ = librosa.load(path, sr=sr)
-
-    mfcc = librosa.feature.mfcc(
-        y=y,
-        sr=sr,
-        n_mfcc=n_mfcc,
-        n_fft=512,
-        hop_length=hop_length,
-        win_length=frame_length,
-        window="hann"
-    )
-
-    return mfcc
-
-def dtw_cosine_normalized_distance(mfcc1, mfcc2):
-    cost_matrix, _ = librosa.sequence.dtw(X=mfcc1, Y=mfcc2, metric='cosine')
-    total_cost = cost_matrix[-1, -1]
-    normalization = mfcc1.shape[0] + mfcc2.shape[0]
-    return total_cost / normalization
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Compare two audio files using MFCC + DTW.")
+def main():
+    parser = argparse.ArgumentParser(description="Compare two audio files features + DTW.")
     parser.add_argument("audio1", type=str, help="Path to first audio file")
     parser.add_argument("audio2", type=str, help="Path to second audio file")
+    parser.add_argument("--method", choices=["mfcc", "embedding"], default="embedding", 
+                       help="Feature extraction method (default: embedding)")
+    
     args = parser.parse_args()
+    
+    print(f"Comparing {args.audio1} and {args.audio2} using {args.method} features...")
+    
+    if args.method == "mfcc":
+        features1 = extract_mfcc_features(args.audio1)
+        features2 = extract_mfcc_features(args.audio2)
+    else:  # embedding
+        features1 = extract_embedding_features(args.audio1)
+        features2 = extract_embedding_features(args.audio2)
+    
+    print(f"Features 1 shape: {features1.shape}")
+    print(f"Features 2 shape: {features2.shape}")
+    
+    distance = dtw_cosine_normalized_distance(features1, features2)
+    print(f"Normalized DTW distance (cosine): {distance:.4f}")
 
-    mfcc1 = extract_features(args.audio1)
-    mfcc2 = extract_features(args.audio2)
-
-    distance = dtw_cosine_normalized_distance(mfcc1, mfcc2)
-    print(f"Normalized DTW distance (cosine): {distance}")
+if __name__ == "__main__":
+    main()

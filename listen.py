@@ -1,103 +1,113 @@
+# listen.py
 import os
 import queue
 import time
 import numpy as np
 import sounddevice as sd
-import librosa
 import argparse
+from features import extract_mfcc_features, extract_embedding_features, dtw_cosine_normalized_distance
 
-import soundfile as sf
-
-def extract_features(
-    path=None,
-    y=None,
-    sr=16000,
-    n_mfcc=13,
-    frame_length=400,
-    hop_length=160,
-):
-    if y is None and path is None:
-        raise ValueError("Must provide either path or raw audio y")
-    if y is None:
-        y, _ = librosa.load(path, sr=sr)
-
-    mfcc = librosa.feature.mfcc(
-        y=y,
-        sr=sr,
-        n_mfcc=n_mfcc,
-        n_fft=512,
-        hop_length=hop_length,
-        win_length=frame_length,
-        window="hann"
-    )
-
-    return mfcc
-
-def dtw_cosine_normalized_distance(mfcc1, mfcc2):
-    cost_matrix, _ = librosa.sequence.dtw(X=mfcc1, Y=mfcc2, metric='cosine')
-    total_cost = cost_matrix[-1, -1]
-    normalization = mfcc1.shape[0] + mfcc2.shape[0]
-    return total_cost / normalization
-
-def load_support_set(support_folder):
+def load_support_set(support_folder, method="embedding"):
+    """Load reference wake word files from support folder"""
     support = []
+    
     for file in os.listdir(support_folder):
         if not file.endswith(".wav"):
             continue
+        
         path = os.path.join(support_folder, file)
-        mfcc = extract_features(path=path)
-        if mfcc is not None:
-            support.append((file, mfcc))
+        print(f"Loading reference file: {file}")
+        
+        try:
+            if method == "mfcc":
+                features = extract_mfcc_features(path=path)
+            else:  # embedding
+                features = extract_embedding_features(path=path)
+            
+            if features is not None:
+                support.append((file, features))
+                print(f"  Features shape: {features.shape}")
+        except Exception as e:
+            print(f"  Error loading {file}: {e}")
+    
     return support
 
 def main():
     parser = argparse.ArgumentParser(description="Real-time wake word detection")
     parser.add_argument("support_folder", type=str, help="Folder with reference wake word .wav files")
     parser.add_argument("threshold", type=float, help="DTW cosine distance threshold for detection")
+    parser.add_argument("--method", choices=["mfcc", "embedding"], default="embedding", 
+                       help="Feature extraction method (default: embedding)")
+    parser.add_argument("--buffer-size", type=float, default=2.0, 
+                       help="Audio buffer size in seconds (default: 2.0)")
+    parser.add_argument("--slide-size", type=float, default=0.5, 
+                       help="Slide size in seconds (default: 0.5)")
+    
     args = parser.parse_args()
-
-    support_set = load_support_set(args.support_folder)
+    
+    print(f"Loading support set using {args.method} features...")
+    support_set = load_support_set(args.support_folder, method=args.method)
+    
     if not support_set:
         print("[ERROR] No valid wake word files found in support folder")
         return
-
-    import sounddevice as sd
-    import queue
-
-    buffer_size = 2 * 16000  # 1 second at 16kHz
-    slide_size = 8000    # 0.5 second slide
-
+    
+    print(f"Loaded {len(support_set)} reference files")
+    
+    # Audio streaming setup
+    sr = 16000
+    buffer_size = int(args.buffer_size * sr)
+    slide_size = int(args.slide_size * sr)
+    
     audio_buffer = np.zeros(buffer_size, dtype=np.float32)
     q = queue.Queue()
-
+    
     def audio_callback(indata, frames, time_info, status):
         if status:
             print(f"[WARN] Audio input status: {status}")
         q.put(indata[:, 0].copy())
-
-    with sd.InputStream(samplerate=16000, channels=1, blocksize=slide_size, callback=audio_callback):
-        print("[INFO] Listening for wake words...")
+    
+    print(f"[INFO] Starting audio stream (buffer: {args.buffer_size}s, slide: {args.slide_size}s)")
+    print(f"[INFO] Using {args.method} features with threshold {args.threshold}")
+    print("[INFO] Listening for wake words...")
+    
+    with sd.InputStream(samplerate=sr, channels=1, blocksize=slide_size, callback=audio_callback):
         while True:
             try:
                 chunk = q.get(timeout=1)
             except queue.Empty:
                 continue
+            
+            # Update sliding buffer
             audio_buffer = np.roll(audio_buffer, -len(chunk))
             audio_buffer[-len(chunk):] = chunk
-
-            # save audio for debug
-            timestamp = int(time.time() * 1000)
-            # filename = f"debug_audio_{timestamp}.wav"
-            # sf.write(filename, audio_buffer, samplerate=16000)
-
-            mfcc = extract_features(y=audio_buffer)
-            if mfcc is None:
+            
+            # Extract features from current buffer
+            try:
+                if args.method == "mfcc":
+                    features = extract_mfcc_features(y=audio_buffer, sr=sr)
+                else:  # embedding
+                    features = extract_embedding_features(y=audio_buffer, sr=sr)
+                
+                if features is None:
+                    continue
+                
+            except Exception as e:
+                print(f"[ERROR] Feature extraction failed: {e}")
                 continue
-            for filename, ref_mfcc in support_set:
-                dist = dtw_cosine_normalized_distance(mfcc, ref_mfcc)
-                print(f"[TRACE] Chunk {timestamp} has similarity {dist:.4f} with '{filename}'")
-                if dist < args.threshold:
-                    print(f"[DETECTED] Wake word '{filename}' detected with distance {dist:.4f} at chunk {timestamp}")
+            
+            # Compare with reference files
+            timestamp = int(time.time() * 1000)
+            
+            for filename, ref_features in support_set:
+                try:
+                    distance = dtw_cosine_normalized_distance(features, ref_features)
+                    
+                    if distance < args.threshold:
+                        print(f"[DETECTED] Wake word '{filename}' detected with distance {distance:.4f} at {timestamp}")
+                    
+                except Exception as e:
+                    print(f"[ERROR] DTW comparison failed for {filename}: {e}")
 
 if __name__ == "__main__":
     main()
