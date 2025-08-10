@@ -1,8 +1,14 @@
 # local-wake
 
-Python scripts to recognize user-defined wake words in real time capable running on edge devices (tested on Raspberry Pi 4). Based on feature extraction and time-warping comparison with user-defined support set. 
+Lightweight wake word detection that runs locally and suitable for resource-constrained devices like Raspberry Pi. Based on feature extraction and time-warping comparison with user-defined support set. 
 
-# Installation
+## Installation
+Prerequisites
+- Python 3.8 or later
+- pip (Python package manager)
+- Audio input device (e.g., microphone)
+
+Steps
 ```
 # Clone the repository
 git clone https://github.com/st-matskevich/local-wake.git
@@ -13,19 +19,20 @@ python -m venv .env
 source .env/bin/activate
 
 # Install required packages
-pip install tensorflow tensorflow-hub librosa sounddevice numpy
+pip install tensorflow tensorflow-hub librosa sounddevice soundfile numpy
+
+# Install PortAudio system library for sounddevice if it wasn't installed via pip
+sudo apt install libportaudio2
 ```
 
-# Usage
+## Usage
 Define how to use scripts
 
-# Preabmle
+## Implementation
 Define problem and existing solutions. Lack of user-side training with arbitary words.
-
-# Implementation
 Define implementation
 
-# To do
+## To do
 - Consider using fast DTW implementation to reduce CPU consumption even more
 - Consider using a small model on top of feature extraction for comparison instead of DTW
 - Consider using VAD for audio preprocessing
@@ -33,7 +40,7 @@ Define implementation
 - Perform accuracy testing
 - Update scripts output to make it easily parsable
 
-# Built with
+## Built with
 - [Python](https://www.python.org/)
 - [TensorFlow](https://www.tensorflow.org/)
 - [google/speech-embedding](https://www.kaggle.com/models/google/speech-embedding)

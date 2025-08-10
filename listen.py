@@ -1,4 +1,3 @@
-# listen.py
 import os
 import queue
 import time
