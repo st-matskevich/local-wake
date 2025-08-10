@@ -1,14 +1,14 @@
 # local-wake
 
-Lightweight wake word detection that runs locally and suitable for resource-constrained devices like Raspberry Pi. Based on feature extraction and time-warping comparison with user-defined support set. 
+Lightweight wake word detection that runs locally and is suitable for resource-constrained devices like the Raspberry Pi. It requires no model training to support custom wake words and can be fully configured by end users on their devices. The system is based on feature extraction combined with time-warping comparison against a user-defined reference set.
 
 ## Installation
-Prerequisites
+### Prerequisites
 - Python 3.8 or later
 - pip (Python package manager)
 - Audio input device (e.g., microphone)
 
-Steps
+### Steps
 ```
 # Clone the repository
 git clone https://github.com/st-matskevich/local-wake.git
@@ -26,7 +26,33 @@ sudo apt install libportaudio2
 ```
 
 ## Usage
-Define how to use scripts
+### Reference set
+The reference set is a collection of wake word recordings used as templates during detection. Typically, 3–4 samples are sufficient to achieve reliable detection performance.
+
+This repository includes `record.py` to record samples:
+```
+python record.py --out ref/sample-1.wav --duration 3
+```
+
+Alternatively, you may use any recording tool of your choice. For example, on Linux, you can use arecord:
+```
+arecord -d 3 -r 16000 -c 1 -f S16_LE output.wav
+```
+
+### Manual audio comparison
+To evaluate comparison and determine a suitable detection threshold you can use `compare.py`:
+```
+python compare.py ref/sample-1.wav ref/sample-2.wav
+```
+
+The script includes a `--method` option to switch between embedding-based and MFCC feature extraction. It is recommended to use this option only if you are familiar with the differences between these methods and wish to compare performance or precision with the deterministic algorithm.
+
+### Real-time detection
+Once reference set is ready and threshold value is identified, you can use `listen.py` to start real-time detection:
+```
+python listen.py reference/folder 0.1 
+```
+
 
 ## Implementation
 Define problem and existing solutions. Lack of user-side training with arbitary words.
@@ -39,6 +65,7 @@ Define implementation
 - Consider using noice suppression for audio preprocessing
 - Perform accuracy testing
 - Update scripts output to make it easily parsable
+- Remove `tensorflow_hub` and load model from local files to avoid internet access
 
 ## Built with
 - [Python](https://www.python.org/)
