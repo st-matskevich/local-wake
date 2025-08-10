@@ -64,8 +64,20 @@ Optional arguments:
 - `--slide-size` - Step size in seconds for the sliding window (default: 0.5).
 
 ## Implementation
-Define problem and existing solutions. Lack of user-side training with arbitary words.
-Define implementation
+Existing solutions for wake word detection can generally be divided into two categories:
+- Classical deterministic, speaker-dependent approaches - Typically based on MFCC feature extraction combined with DTW, as used in projects such as [Rhasspy Raven](https://github.com/rhasspy/rhasspy-wake-raven) or [Snips](https://medium.com/snips-ai/machine-learning-on-voice-a-gentle-introduction-with-snips-personal-wake-word-detector-133bd6fb568e).
+  - Advantages: Support for user-defined wake words with minimal development effort.
+  - Limitations: Strongly speaker-dependent, requiring sample collection from all intended users. Highly sensitive to background noise.
+
+- Modern model-based, speaker-independent approaches - Use neural models to classify wake words directly, as in [openWakeWord](https://github.com/dscripka/openWakeWord) or [Porcupine](https://github.com/Picovoice/porcupine).
+  - Advantages: High precision across multiple speakers without additional sample collection.
+  - Limitations: Do not support arbitrary user-defined wake words. Adapting to product-specific wake words requires model retraining or fine-tuning, which, depending on the solution, can be complex and typically requires at least a basic understanding of machine learning concepts and dataset preparation.
+
+Choosing either category imposes strict limitations: deterministic methods sacrifice robustness, while model-based methods sacrifice adaptability.
+
+local-wake combines neural feature extraction with classical sequence matching to achieve flexible and robust wake word detection. It uses a pretrained Google's [speech-embedding](https://www.kaggle.com/models/google/speech-embedding) model to extract speech features, then applies Dynamic Time Warping to compare incoming audio against a user-defined reference set of wake word samples.
+
+This approach merges the advantages of both categories described above: it supports user-defined wake words like traditional deterministic methods, while benefiting from the enhanced feature representations and noise robustness provided by neural models. The result is a system that delivers good precision and flexibility without requiring extensive model training or large datasets.
 
 ## To do
 - Consider using fast DTW implementation to reduce CPU consumption even more
