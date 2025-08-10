@@ -27,7 +27,7 @@ sudo apt install libportaudio2
 
 ## Usage
 ### Reference set
-The reference set is a collection of wake word recordings used as templates during detection. Typically, 3-4 samples are sufficient to achieve reliable detection performance.
+The reference set is a collection of wake word recordings used as templates during detection. Usually, 3-4 samples are sufficient to achieve reliable detection performance.
 
 This repository includes `record.py` to record samples:
 ```
@@ -48,7 +48,7 @@ python compare.py ref/sample-1.wav ref/sample-2.wav
 - ref/sample-2.wav - Path to the second file for comparison.
 
 Optional arguments:
-- `--method` - Feature extraction method `embedding` (default) or `mfcc`.
+- `--method` (default: `embedding`) - Feature extraction method, `embedding` or `mfcc`.
 
 ### Real-time detection
 Once reference set is ready and threshold value has been identified, you can use `listen.py` to start real-time detection:
@@ -59,9 +59,9 @@ python listen.py reference/folder 0.1
 - 0.1 - Detection threshold. Adjust this value based on your comparison tests to balance sensitivity and false positives.
 
 Optional arguments:
-- `--method` - - Feature extraction method `embedding` (default) or `mfcc`.
-- `--buffer-size` - Audio buffer size in seconds (default: 2.0).
-- `--slide-size` - Step size in seconds for the sliding window (default: 0.5).
+- `--method` (default: `embedding`) - Feature extraction method, `embedding` or `mfcc`.
+- `--buffer-size` (default: 2.0) - Audio buffer size in seconds.
+- `--slide-size` (default: 0.5) - Step size in seconds for the sliding window.
 
 ## Implementation
 Existing solutions for wake word detection can generally be divided into two categories:
@@ -80,13 +80,13 @@ local-wake combines neural feature extraction with classical sequence matching t
 This approach merges the advantages of both categories described above: it supports user-defined wake words like traditional deterministic methods, while benefiting from the enhanced feature representations and noise robustness provided by neural models. The result is a system that delivers good precision and flexibility without requiring extensive model training or large datasets.
 
 ## To do
-- Consider using fast DTW implementation to reduce CPU consumption even more
+- Consider using fast DTW implementation to reduce CPU usage
 - Consider using a small model on top of feature extraction for comparison instead of DTW
 - Consider using VAD for audio preprocessing
-- Consider using noice suppression for audio preprocessing
+- Consider using noise suppression for audio preprocessing
 - Perform accuracy testing
 - Update scripts output to make it easily parsable
-- Remove `tensorflow_hub` and load model from local files to avoid internet access
+- Remove `tensorflow_hub` and load model from local files to allow completely offline usage
 
 ## Built with
 - [Python](https://www.python.org/)
