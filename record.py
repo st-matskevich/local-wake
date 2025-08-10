@@ -1,5 +1,5 @@
 import sounddevice as sd
-from scipy.io.wavfile import write
+import soundfile as sf
 import argparse
 import os
 
@@ -10,7 +10,7 @@ def record_audio(filename, duration=3, sample_rate=16000):
     sd.wait()
 
     os.makedirs(os.path.dirname(filename), exist_ok=True)
-    write(filename, sample_rate, audio)
+    sf.write(filename, audio, samplerate=sample_rate)
     print(f"Saved to {filename}")
 
 if __name__ == "__main__":

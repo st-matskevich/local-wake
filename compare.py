@@ -2,7 +2,7 @@ import argparse
 from features import extract_mfcc_features, extract_embedding_features, dtw_cosine_normalized_distance
 
 def main():
-    parser = argparse.ArgumentParser(description="Compare two audio files features + DTW.")
+    parser = argparse.ArgumentParser(description="Compare two audio files features via DTW.")
     parser.add_argument("audio1", type=str, help="Path to first audio file")
     parser.add_argument("audio2", type=str, help="Path to second audio file")
     parser.add_argument("--method", choices=["mfcc", "embedding"], default="embedding", 
