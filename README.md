@@ -27,14 +27,14 @@ sudo apt install libportaudio2
 
 ## Usage
 ### Reference set
-The reference set is a collection of wake word recordings used as templates during detection. Typically, 3–4 samples are sufficient to achieve reliable detection performance.
+The reference set is a collection of wake word recordings used as templates during detection. Typically, 3-4 samples are sufficient to achieve reliable detection performance.
 
 This repository includes `record.py` to record samples:
 ```
 python record.py --out ref/sample-1.wav --duration 3
 ```
 
-Alternatively, you may use any recording tool of your choice. For example, on Linux, you can use arecord:
+Alternatively, you may use any recording tool of your choice. For example, on Linux:
 ```
 arecord -d 3 -r 16000 -c 1 -f S16_LE output.wav
 ```
@@ -44,15 +44,24 @@ To evaluate comparison and determine a suitable detection threshold you can use 
 ```
 python compare.py ref/sample-1.wav ref/sample-2.wav
 ```
+- ref/sample-1.wav - Path to the first file for comparison.
+- ref/sample-2.wav - Path to the second file for comparison.
 
-The script includes a `--method` option to switch between embedding-based and MFCC feature extraction. It is recommended to use this option only if you are familiar with the differences between these methods and wish to compare performance or precision with the deterministic algorithm.
+Optional arguments:
+- `--method` - Feature extraction method `embedding` (default) or `mfcc`.
 
 ### Real-time detection
-Once reference set is ready and threshold value is identified, you can use `listen.py` to start real-time detection:
+Once reference set is ready and threshold value has been identified, you can use `listen.py` to start real-time detection:
 ```
 python listen.py reference/folder 0.1 
 ```
+- reference/folder - Directory containing your reference wake word .wav files.
+- 0.1 - Detection threshold. Adjust this value based on your comparison tests to balance sensitivity and false positives.
 
+Optional arguments:
+- `--method` - - Feature extraction method `embedding` (default) or `mfcc`.
+- `--buffer-size` - Audio buffer size in seconds (default: 2.0).
+- `--slide-size` - Step size in seconds for the sliding window (default: 0.5).
 
 ## Implementation
 Define problem and existing solutions. Lack of user-side training with arbitary words.
