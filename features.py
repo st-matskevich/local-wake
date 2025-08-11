@@ -2,18 +2,20 @@ import librosa
 import tensorflow as tf
 import tensorflow_hub as hub
 import numpy as np
+import logging
 
 _model = None
 _inference_fn = None
+_logger = logging.getLogger("local-wake")
 
 def _load_embedding_model():
     """Load the speech embedding model (lazy loading)"""
     global _model, _inference_fn
     if _model is None:
-        print("Loading speech embedding model...")
+        _logger.info("Loading speech embedding model...")
         _model = hub.load("https://tfhub.dev/google/speech_embedding/1")
         _inference_fn = _model.signatures['default']
-        print("Model loaded successfully!")
+        _logger.info("Model loaded successfully")
     return _inference_fn
 
 def extract_mfcc_features(

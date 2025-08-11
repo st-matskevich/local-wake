@@ -31,13 +31,15 @@ The reference set is a collection of wake word recordings used as templates duri
 
 This repository includes `record.py` to record samples:
 ```
-python record.py --out ref/sample-1.wav --duration 3
+python record.py ref/sample-1.wav --duration 3
 ```
 
 Alternatively, you may use any recording tool of your choice. For example, on Linux:
 ```
 arecord -d 3 -r 16000 -c 1 -f S16_LE output.wav
 ```
+
+Notes: The recording script is quite straightforward and may capture silence or background noise before/after the wake word during default 3-second capture. For better detection precision, it's recommended to trim recordings down to just the wake word segment. This can be done manually using audio editing software or automatically using Voice Activity Detection (VAD) tools.
 
 ### Manual audio comparison
 To evaluate comparison and determine a suitable detection threshold you can use `compare.py`:
@@ -61,7 +63,15 @@ python listen.py reference/folder 0.1
 Optional arguments:
 - `--method` (default: `embedding`) - Feature extraction method, `embedding` or `mfcc`.
 - `--buffer-size` (default: 2.0) - Audio buffer size in seconds.
-- `--slide-size` (default: 0.5) - Step size in seconds for the sliding window.
+- `--slide-size` (default: 0.25) - Step size in seconds for the sliding window.
+- `--debug` - Enable capture debug logs
+
+All logs are printed to stderr, while detection events are printed in JSON format to stdout to simplify parsing:
+`{"timestamp": 1754947173771, "wakeword": "sample-01.wav", "distance": 0.00943875619501332}`
+
+Notes:
+- Buffer size should be similar to or slightly larger than your reference recording length
+- Slide size can be set to a lower value for better precision at the cost of higher CPU usage
 
 ## Implementation
 Existing solutions for wake word detection can generally be divided into two categories:
@@ -85,7 +95,6 @@ This approach merges the advantages of both categories described above: it suppo
 - Consider using VAD for audio preprocessing
 - Consider using noise suppression for audio preprocessing
 - Perform accuracy testing
-- Update scripts output to make it easily parsable
 - Remove `tensorflow_hub` and load model from local files to allow completely offline usage
 
 ## Built with
