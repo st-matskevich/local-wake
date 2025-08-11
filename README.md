@@ -39,7 +39,8 @@ Alternatively, you may use any recording tool of your choice. For example, on Li
 arecord -d 3 -r 16000 -c 1 -f S16_LE output.wav
 ```
 
-Notes: The recording script is quite straightforward and may capture silence or background noise before/after the wake word during default 3-second capture. For better detection precision, it's recommended to trim recordings down to just the wake word segment. This can be done manually using audio editing software or automatically using Voice Activity Detection (VAD) tools.
+Notes:
+ - The recording script is quite straightforward and may capture silence or background noise before/after the wake word during default 3-second capture. For better detection precision, it's recommended to trim recordings down to just the wake word segment. This can be done manually using audio editing software or automatically using Voice Activity Detection (VAD) tools.
 
 ### Manual audio comparison
 To evaluate comparison and determine a suitable detection threshold you can use `compare.py`:
