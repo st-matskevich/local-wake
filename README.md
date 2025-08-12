@@ -19,7 +19,7 @@ python -m venv .env
 source .env/bin/activate
 
 # Install required packages
-pip install tensorflow tensorflow-hub librosa sounddevice soundfile numpy
+pip install tensorflow tensorflow-hub silero-vad librosa sounddevice soundfile numpy
 
 # Install PortAudio system library for sounddevice if it wasn't installed via pip
 sudo apt install libportaudio2
@@ -29,18 +29,24 @@ sudo apt install libportaudio2
 ### Reference set
 The reference set is a collection of wake word recordings used as templates during detection. Usually, 3-4 samples are sufficient to achieve reliable detection performance.
 
-This repository includes `record.py` to record samples:
+This repository includes `record.py`, which records audio samples and trims silence using Voice Activity Detection:
 ```
 python record.py ref/sample-1.wav --duration 3
 ```
+- ref/sample-1.wav - Path for the recorded file.
 
-Alternatively, you may use any recording tool of your choice. For example, on Linux:
+Optional arguments:
+- `--duration` (default: 3) - Duration in seconds.
+- `--sr` (default: 16000) - Sample rate in Hz.
+- `--no-vad` - Skip Voice Activity Detection silence trimming.
+
+Alternatively, you may use any recording tool of your choice. However, make sure that appropriate preprocessing is applied - specifically, silence must be trimmed from the recordings to achieve proper detection performance. A simple example of recording on Linux is:
 ```
 arecord -d 3 -r 16000 -c 1 -f S16_LE output.wav
 ```
 
 Notes:
- - The recording script is quite straightforward and may capture silence or background noise before/after the wake word during default 3-second capture. For better detection precision, it's recommended to trim recordings down to just the wake word segment. This can be done manually using audio editing software or automatically using Voice Activity Detection (VAD) tools.
+ - Current Voice Activity Detection may occasionally be too aggressive, therefore, verify your recordings to ensure the wake word is fully captured and not inadvertently trimmed.
 
 ### Manual audio comparison
 To evaluate comparison and determine a suitable detection threshold you can use `compare.py`:
@@ -91,8 +97,8 @@ local-wake combines neural feature extraction with classical sequence matching t
 This approach merges the advantages of both categories described above: it supports user-defined wake words like traditional deterministic methods, while benefiting from the enhanced feature representations and noise robustness provided by neural models. The result is a system that delivers good precision and flexibility without requiring extensive model training or large datasets.
 
 ## To do
-- Consider using fast DTW implementation to reduce CPU usage
 - Consider using a small model on top of feature extraction for comparison instead of DTW
+- Consider rebuilding the model to use a different inference engine
 - Consider using VAD for audio preprocessing
 - Consider using noise suppression for audio preprocessing
 - Perform accuracy testing
@@ -103,6 +109,7 @@ This approach merges the advantages of both categories described above: it suppo
 - [TensorFlow](https://www.tensorflow.org/)
 - [google/speech-embedding](https://www.kaggle.com/models/google/speech-embedding)
 - [librosa](https://librosa.org/)
+- [Silero VAD](https://github.com/snakers4/silero-vad)
 - [python-sounddevice](https://github.com/spatialaudio/python-sounddevice)
 
 ## License
