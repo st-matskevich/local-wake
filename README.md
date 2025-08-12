@@ -80,6 +80,9 @@ Notes:
 - Buffer size should be similar to or slightly larger than your reference recording length
 - Slide size can be set to a lower value for better precision at the cost of higher CPU usage
 
+### Examples
+This repository includes several pre-recorded examples for experimenting with the project. You can find them in the [examples](/examples) directory. While each example provides a suggested detection threshold, this value may require adjustment based on differences in microphone quality and environment.
+
 ## Implementation
 Existing solutions for wake word detection can generally be divided into two categories:
 - Classical deterministic, speaker-dependent approaches - Typically based on MFCC feature extraction combined with DTW, as used in projects such as [Rhasspy Raven](https://github.com/rhasspy/rhasspy-wake-raven) or [Snips](https://medium.com/snips-ai/machine-learning-on-voice-a-gentle-introduction-with-snips-personal-wake-word-detector-133bd6fb568e).
