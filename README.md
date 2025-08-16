@@ -125,6 +125,12 @@ local-wake combines neural feature extraction with classical sequence matching t
 
 This approach merges the advantages of both categories described above: it supports user-defined wake words like traditional deterministic methods, while benefiting from the enhanced feature representations and noise robustness provided by neural models. The result is a system that delivers good precision and flexibility without requiring extensive model training or large datasets.
 
+## Evaluation
+
+local-wake achieves **98.6% detection accuracy** on clean same-speaker audio using the [Qualcomm Keyword Speech Dataset](https://www.qualcomm.com/developer/software/keyword-speech-dataset).  
+
+For detailed evaluation results, see the [benchmark documentation](benchmark/README.md).
+
 ## To do
 - Consider using a small model on top of feature extraction for comparison instead of DTW
 - Consider rebuilding the model to use a different inference engine

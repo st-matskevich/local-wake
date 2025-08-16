@@ -201,3 +201,8 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Benchmark data
+benchmark/qualcomm
+benchmark/augmented
+benchmark/result.csv
