@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "local-wake"
+version = "0.1.0"
+description = "Local wake word detection using a small set of user-provided recordings"
+authors = [{ name = "Stanislau Matskevich" }]
+readme = "README.md"
+license = { text = "MIT" }
+# python 3.13 is limited to tensorflow 2.20
+requires-python = ">=3.9, <3.13"
+dependencies = [
+    # tensorflow-hub depends on tf-keras and the latest 2.19 is not compatible with tensorflow 2.20
+    "tensorflow<2.20",
+    "tensorflow-hub",
+    "silero-vad",
+    "librosa", 
+    "sounddevice",
+    "soundfile",
+    "numpy"
+]
+
+[project.scripts]
+lwake = "lwake.cli:main"

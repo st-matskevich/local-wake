@@ -4,12 +4,12 @@ Lightweight wake word detection that runs locally and is suitable for resource-c
 
 ## Installation
 ### Prerequisites
-- Python 3.8 or later
+- Python 3.9 or later
 - pip (Python package manager)
 - Audio input device (e.g., microphone)
 
 ### Steps
-```
+```bash
 # Clone the repository
 git clone https://github.com/st-matskevich/local-wake.git
 cd local-wake
@@ -19,26 +19,30 @@ python -m venv .env
 source .env/bin/activate
 
 # Install required packages
-pip install tensorflow tensorflow-hub silero-vad librosa sounddevice soundfile numpy
+pip install .
+```
 
-# Install PortAudio system library for sounddevice if it wasn't installed via pip
+### System Dependencies
+sounddevice package [depends on PortAudio which is not installed automatically on Linux](https://python-sounddevice.readthedocs.io/en/0.5.1/installation.html#installation). You can install it manually on Ubuntu with this:
+```bash
 sudo apt install libportaudio2
 ```
 
 ## Usage
-### Reference set
+
+### CLI Usage
+
+#### Recording Reference Samples
 The reference set is a collection of wake word recordings used as templates during detection. Usually, 3-4 samples are sufficient to achieve reliable detection performance.
 
-This repository includes `record.py`, which records audio samples and trims silence using Voice Activity Detection:
+```bash
+lwake record ref/sample-1.wav
 ```
-python record.py ref/sample-1.wav --duration 3
-```
-- ref/sample-1.wav - Path for the recorded file.
+- `ref/sample-1.wav` - Path for the recorded file
 
 Optional arguments:
-- `--duration` (default: 3) - Duration in seconds.
-- `--sr` (default: 16000) - Sample rate in Hz.
-- `--no-vad` - Skip Voice Activity Detection silence trimming.
+- `--duration` (default: 3) - Duration in seconds
+- `--no-vad` - Skip Voice Activity Detection silence trimming
 
 Alternatively, you may use any recording tool of your choice. However, make sure that appropriate preprocessing is applied - specifically, silence must be trimmed from the recordings to achieve proper detection performance. A simple example of recording on Linux is:
 ```
@@ -48,37 +52,59 @@ arecord -d 3 -r 16000 -c 1 -f S16_LE output.wav
 Notes:
  - Current Voice Activity Detection may occasionally be too aggressive, therefore, verify your recordings to ensure the wake word is fully captured and not inadvertently trimmed.
 
-### Manual audio comparison
-To evaluate comparison and determine a suitable detection threshold you can use `compare.py`:
+#### Audio Comparison
+To evaluate comparison and determine a suitable detection threshold:
+
+```bash
+lwake compare ref/sample-1.wav ref/sample-2.wav
 ```
-python compare.py ref/sample-1.wav ref/sample-2.wav
-```
-- ref/sample-1.wav - Path to the first file for comparison.
-- ref/sample-2.wav - Path to the second file for comparison.
+- `ref/sample-1.wav` - Path to the first file for comparison
+- `ref/sample-2.wav` - Path to the second file for comparison
 
 Optional arguments:
-- `--method` (default: `embedding`) - Feature extraction method, `embedding` or `mfcc`.
+- `--method` (default: `embedding`) - Feature extraction method: `embedding` or `mfcc`
 
-### Real-time detection
-Once reference set is ready and threshold value has been identified, you can use `listen.py` to start real-time detection:
+#### Real-time Detection
+Once reference set is ready and threshold value has been identified:
+
+```bash
+lwake listen reference/folder 0.1 
 ```
-python listen.py reference/folder 0.1 
-```
-- reference/folder - Directory containing your reference wake word .wav files.
-- 0.1 - Detection threshold. Adjust this value based on your comparison tests to balance sensitivity and false positives.
+- `reference/folder` - Directory containing your reference wake word .wav files
+- `0.1` - Detection threshold. Adjust this value based on your comparison tests to balance sensitivity and false positives
 
 Optional arguments:
-- `--method` (default: `embedding`) - Feature extraction method, `embedding` or `mfcc`.
-- `--buffer-size` (default: 2.0) - Audio buffer size in seconds.
-- `--slide-size` (default: 0.25) - Step size in seconds for the sliding window.
-- `--debug` - Enable capture debug logs
+- `--method` (default: `embedding`) - Feature extraction method: `embedding` or `mfcc`
+- `--buffer-size` (default: 2.0) - Audio buffer size in seconds
+- `--slide-size` (default: 0.25) - Step size in seconds for the sliding window
+- `--debug` - Enable debug logs to observe real-time scores for incoming audio chunks
 
-All logs are printed to stderr, while detection events are printed in JSON format to stdout to simplify parsing:
-`{"timestamp": 1754947173771, "wakeword": "sample-01.wav", "distance": 0.00943875619501332}`
+All logs are printed to stderr, while detection events are printed in JSON format to stdout:
+```json
+{"timestamp": 1754947173771, "wakeword": "sample-01.wav", "distance": 0.00943875619501332}
+```
 
 Notes:
 - Buffer size should be similar to or slightly larger than your reference recording length
-- Slide size can be set to a lower value for better precision at the cost of higher CPU usage
+- Slide size can be set lower for better precision at the cost of higher CPU usage
+
+### Library Usage
+
+You can also use local-wake as a Python library:
+
+```python
+import lwake
+
+# Record audio sample
+lwake.record("sample.wav", duration=3, trim_silence=True)
+
+# Compare two audio files
+distance = lwake.compare("file1.wav", "file2.wav", method="embedding")
+print(f"Distance: {distance}")
+
+# Real-time detection (blocking call)
+lwake.listen("reference/folder", threshold=0.1, method="embedding")
+```
 
 ### Examples
 This repository includes several pre-recorded examples for experimenting with the project. You can find them in the [examples](/examples) directory. While each example provides a suggested detection threshold, this value may require adjustment based on differences in microphone quality and environment.

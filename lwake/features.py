@@ -21,7 +21,7 @@ def _load_embedding_model():
 def extract_mfcc_features(
     path=None,
     y=None,
-    sr=16000,
+    sample_rate=16000,
     n_mfcc=13,
     frame_length=400,
     hop_length=160,
@@ -31,11 +31,11 @@ def extract_mfcc_features(
         raise ValueError("Must provide either path or raw audio y")
     
     if y is None:
-        y, _ = librosa.load(path, sr=sr)
+        y, _ = librosa.load(path, sr=sample_rate)
     
     mfcc = librosa.feature.mfcc(
         y=y,
-        sr=sr,
+        sr=sample_rate,
         n_mfcc=n_mfcc,
         n_fft=512,
         hop_length=hop_length,
@@ -47,14 +47,14 @@ def extract_mfcc_features(
 def extract_embedding_features(
     path=None,
     y=None,
-    sr=16000,
+    sample_rate=16000,
 ):
     """Extract speech embedding features from audio file or raw audio"""
     if y is None and path is None:
         raise ValueError("Must provide either path or raw audio y")
     
     if y is None:
-        y, _ = librosa.load(path, sr=sr)
+        y, _ = librosa.load(path, sr=sample_rate)
     
     inference_fn = _load_embedding_model()
     emb = inference_fn(default=tf.constant(y[None, :], dtype=tf.float32))['default']
