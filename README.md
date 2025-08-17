@@ -136,7 +136,6 @@ For detailed evaluation results, see the [benchmark documentation](benchmark/REA
 - Consider rebuilding the model to use a different inference engine
 - Consider using VAD for audio preprocessing
 - Consider using noise suppression for audio preprocessing
-- Perform accuracy testing
 - Remove `tensorflow_hub` and load model from local files to allow completely offline usage
 
 ## Built with
