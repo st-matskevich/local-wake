@@ -36,9 +36,13 @@ def load_support_set(support_folder, method="embedding"):
     
     return support
 
-def listen(support_folder, threshold, method="embedding", buffer_size=2.0, slide_size=0.25):
+def listen(support_folder, threshold, method="embedding", buffer_size=2.0, slide_size=0.25, callback=None):
     """Real-time wake word detection"""
     from .features import extract_mfcc_features, extract_embedding_features, dtw_cosine_normalized_distance
+
+    if callback is None:
+        def callback(detection):
+            print(json.dumps(detection), file=sys.stdout, flush=True)
     
     _logger.info(f"Loading support set using {method} features...")
     support_set = load_support_set(support_folder, method=method)
@@ -101,7 +105,7 @@ def listen(support_folder, threshold, method="embedding", buffer_size=2.0, slide
                             "distance": distance
                         }
                         _logger.info(f"Wake word '{filename}' detected with distance {distance:.4f}")
-                        print(json.dumps(detection), file=sys.stdout, flush=True)
+                        callback(detection)
                     
                 except Exception as e:
                     _logger.error(f"DTW comparison failed for {filename}: {e}")

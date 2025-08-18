@@ -103,7 +103,10 @@ distance = lwake.compare("file1.wav", "file2.wav", method="embedding")
 print(f"Distance: {distance}")
 
 # Real-time detection (blocking call)
-lwake.listen("reference/folder", threshold=0.1, method="embedding")
+def handle_detection(detection):
+    print(f"Detected '{detection['wakeword']}' at {detection['timestamp']}")
+
+lwake.listen("reference/folder", threshold=0.1, method="embedding", callback=handle_detection)
 ```
 
 ### Examples
