@@ -121,7 +121,7 @@ Existing solutions for wake word detection can generally be divided into two cat
 
 Choosing either category imposes strict limitations: deterministic methods sacrifice robustness, while model-based methods sacrifice adaptability.
 
-local-wake combines neural feature extraction with classical sequence matching to achieve flexible and robust wake word detection. It uses a pretrained Google's [speech-embedding](https://www.kaggle.com/models/google/speech-embedding) model to extract speech features, then applies Dynamic Time Warping to compare incoming audio against a user-defined reference set of wake word samples.
+local-wake combines neural feature extraction with classical sequence matching to achieve flexible and robust wake word detection. It uses a pretrained Google's [speech-embedding](https://www.kaggle.com/models/google/speech-embedding) model (converted to ONNX format for efficient inference) to extract speech features, then applies Dynamic Time Warping to compare incoming audio against a user-defined reference set of wake word samples.
 
 This approach merges the advantages of both categories described above: it supports user-defined wake words like traditional deterministic methods, while benefiting from the enhanced feature representations and noise robustness provided by neural models. The result is a system that delivers good precision and flexibility without requiring extensive model training or large datasets.
 
@@ -133,14 +133,11 @@ For detailed evaluation results, see the [benchmark documentation](benchmark/REA
 
 ## To do
 - Consider using a small model on top of feature extraction for comparison instead of DTW
-- Consider rebuilding the model to use a different inference engine
-- Consider using VAD for audio preprocessing
 - Consider using noise suppression for audio preprocessing
-- Remove `tensorflow_hub` and load model from local files to allow completely offline usage
 
 ## Built with
 - [Python](https://www.python.org/)
-- [TensorFlow](https://www.tensorflow.org/)
+- [ONNX Runtime](https://onnxruntime.ai/) 
 - [google/speech-embedding](https://www.kaggle.com/models/google/speech-embedding)
 - [librosa](https://librosa.org/)
 - [Silero VAD](https://github.com/snakers4/silero-vad)

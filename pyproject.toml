@@ -9,12 +9,9 @@ description = "Local wake word detection using a small set of user-provided reco
 authors = [{ name = "Stanislau Matskevich" }]
 readme = "README.md"
 license = { text = "MIT" }
-# python 3.13 is limited to tensorflow 2.20
-requires-python = ">=3.9, <3.13"
+requires-python = ">=3.9"
 dependencies = [
-    # tensorflow-hub depends on tf-keras and the latest 2.19 is not compatible with tensorflow 2.20
-    "tensorflow<2.20",
-    "tensorflow-hub",
+    "onnxruntime",
     "silero-vad",
     "librosa", 
     "sounddevice",
@@ -24,3 +21,9 @@ dependencies = [
 
 [project.scripts]
 lwake = "lwake.cli:main"
+
+[tool.setuptools]
+packages = ["lwake"]
+
+[tool.setuptools.package-data]
+lwake = ["models/*.onnx"]

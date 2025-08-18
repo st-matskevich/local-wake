@@ -1,7 +1,6 @@
 import sounddevice as sd
 import soundfile as sf
 import logging
-import torch
 from silero_vad import load_silero_vad, get_speech_timestamps
 
 _logger = logging.getLogger("local-wake")
@@ -10,9 +9,8 @@ def trim_silence_with_vad(audio, sample_rate):
     _logger.info("Loading Silero VAD model...")
     model = load_silero_vad()
 
-    t = torch.from_numpy(audio[:, 0]).float()
     speech_timestamps = get_speech_timestamps(
-        t, model,
+        audio[:, 0], model,
         sampling_rate=sample_rate,
     )
     

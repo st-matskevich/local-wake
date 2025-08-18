@@ -1,22 +1,21 @@
 import librosa
-import tensorflow as tf
-import tensorflow_hub as hub
-import numpy as np
+import onnxruntime as ort
+import functools
 import logging
+from importlib.resources import files
 
-_model = None
-_inference_fn = None
 _logger = logging.getLogger("local-wake")
 
+@functools.cache
 def _load_embedding_model():
-    """Load the speech embedding model (lazy loading)"""
-    global _model, _inference_fn
-    if _model is None:
-        _logger.info("Loading speech embedding model...")
-        _model = hub.load("https://tfhub.dev/google/speech_embedding/1")
-        _inference_fn = _model.signatures['default']
-        _logger.info("Model loaded successfully")
-    return _inference_fn
+    """Load the speech_embedding model (cached)"""
+    _logger.info("Loading speech_embedding model...")
+    opts = ort.SessionOptions()
+    opts.intra_op_num_threads = 1 
+    model_file = files('lwake.models') / 'speech-embedding.onnx'
+    session = ort.InferenceSession(model_file, opts, providers=["CPUExecutionProvider"])
+    _logger.info("Model loaded successfully")
+    return session
 
 def extract_mfcc_features(
     path=None,
@@ -26,7 +25,7 @@ def extract_mfcc_features(
     frame_length=400,
     hop_length=160,
 ):
-    """Extract MFCC features from audio file or raw audio"""
+    """Extract speech features using MFCC from audio file or raw audio"""
     if y is None and path is None:
         raise ValueError("Must provide either path or raw audio y")
     
@@ -49,18 +48,18 @@ def extract_embedding_features(
     y=None,
     sample_rate=16000,
 ):
-    """Extract speech embedding features from audio file or raw audio"""
+    """Extract audio features using speech_embedding from audio file or raw audio"""
     if y is None and path is None:
         raise ValueError("Must provide either path or raw audio y")
     
     if y is None:
         y, _ = librosa.load(path, sr=sample_rate)
     
-    inference_fn = _load_embedding_model()
-    emb = inference_fn(default=tf.constant(y[None, :], dtype=tf.float32))['default']
+    model = _load_embedding_model()
+    emb = model.run(None,  {"samples:0": y[None, :]})[0]
     
     # Return transposed shape (96, time_frames) for DTW
-    return emb[0, :, 0, :].numpy().T
+    return emb[0, :, 0, :].T
 
 def dtw_cosine_normalized_distance(features1, features2):
     """Compute normalized DTW distance with cosine metric"""

@@ -114,7 +114,8 @@ def load_and_preprocess_dataset(dataset_path):
                 # Apply augmentations
                 audio = apply_augmentations(audio)
                 audio = pad_audio(audio, MIN_SAMPLES)
-                
+                audio = audio.astype(np.float32, copy=False)
+
                 feat = extract_embedding_features(y=audio)
                 recordings.append((wav_file.name, feat))
             
