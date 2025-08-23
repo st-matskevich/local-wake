@@ -1,6 +1,5 @@
 import os
 import sys
-import queue
 import time
 import json
 import numpy as np
@@ -41,7 +40,7 @@ def listen(support_folder, threshold, method="embedding", buffer_size=2.0, slide
     from .features import extract_mfcc_features, extract_embedding_features, dtw_cosine_normalized_distance
 
     if callback is None:
-        def callback(detection):
+        def callback(detection, _):
             print(json.dumps(detection), file=sys.stdout, flush=True)
     
     _logger.info(f"Loading support set using {method} features...")
@@ -56,26 +55,19 @@ def listen(support_folder, threshold, method="embedding", buffer_size=2.0, slide
     sample_rate = 16000
     buffer_size_samples = int(buffer_size * sample_rate)
     slide_size_samples = int(slide_size * sample_rate)
-    
     audio_buffer = np.zeros(buffer_size_samples, dtype=np.float32)
-    q = queue.Queue()
-    
-    def audio_callback(indata, frames, time_info, status):
-        if status:
-            _logger.warning(f"Audio input status: {status}")
-        q.put(indata[:, 0].copy())
     
     _logger.info(f"Starting audio stream (buffer: {buffer_size}s, slide: {slide_size}s)")
     _logger.info(f"Using {method} features with threshold {threshold}")
     _logger.info("Listening for wake words...")
     
-    with sd.InputStream(samplerate=sample_rate, channels=1, blocksize=slide_size_samples, callback=audio_callback):
+    with sd.InputStream(samplerate=sample_rate, channels=1, dtype=np.float32) as stream:
         while True:
-            try:
-                chunk = q.get(timeout=1)
-            except queue.Empty:
-                continue
+            data, overflowed = stream.read(slide_size_samples)
+            if overflowed:
+                _logger.warning("Audio buffer overflowed")
             
+            chunk = data[:, 0]
             audio_buffer = np.roll(audio_buffer, -len(chunk))
             audio_buffer[-len(chunk):] = chunk
             
@@ -105,7 +97,7 @@ def listen(support_folder, threshold, method="embedding", buffer_size=2.0, slide
                             "distance": distance
                         }
                         _logger.info(f"Wake word '{filename}' detected with distance {distance:.4f}")
-                        callback(detection)
+                        callback(detection, stream)
                     
                 except Exception as e:
                     _logger.error(f"DTW comparison failed for {filename}: {e}")
