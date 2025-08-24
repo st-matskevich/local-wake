@@ -10,22 +10,20 @@ Lightweight wake word detection that runs locally and is suitable for resource-c
 
 ### Steps
 ```bash
-# Clone the repository
-git clone https://github.com/st-matskevich/local-wake.git
-cd local-wake
-
-# Create virtual environment
-python -m venv .env
-source .env/bin/activate
-
-# Install required packages
-pip install .
+pip install local-wake
 ```
 
 ### System Dependencies
 sounddevice package [depends on PortAudio which is not installed automatically on Linux](https://python-sounddevice.readthedocs.io/en/0.5.1/installation.html#installation). You can install it manually on Ubuntu with this:
 ```bash
 sudo apt install libportaudio2
+```
+
+### Install from source
+```bash
+git clone https://github.com/st-matskevich/local-wake.git
+cd local-wake
+pip install .
 ```
 
 ## Usage

@@ -5,10 +5,11 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "local-wake"
 version = "0.1.0"
-description = "Local wake word detection using a small set of user-provided recordings"
-authors = [{ name = "Stanislau Matskevich" }]
+description = "Lightweight local wake word detection that recognizes phrases with just a few user-provided recordings. No model training required."
+authors = [{ name = "Stanislau Matskevich", email="st.matskevich@gmail.com" }]
 readme = "README.md"
-license = { text = "MIT" }
+license = "MIT"
+license-files = ["LICENSE"]
 requires-python = ">=3.9"
 dependencies = [
     "onnxruntime",
@@ -18,6 +19,15 @@ dependencies = [
     "soundfile",
     "numpy"
 ]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Topic :: Multimedia :: Sound/Audio :: Speech",
+]
+
+[project.urls]
+Repository = "https://github.com/st-matskevich/local-wake"
 
 [project.scripts]
 lwake = "lwake.cli:main"
