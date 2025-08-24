@@ -98,6 +98,11 @@ def listen(support_folder, threshold, method="embedding", buffer_size=2.0, slide
                         }
                         _logger.info(f"Wake word '{filename}' detected with distance {distance:.4f}")
                         callback(detection, stream)
+                        
+                        # since the blocking callback might not return immediately,
+                        # clear the buffer and break from comparison to avoid duplicate triggers
+                        audio_buffer = np.zeros(buffer_size_samples, dtype=np.float32)
+                        break
                     
                 except Exception as e:
                     _logger.error(f"DTW comparison failed for {filename}: {e}")
