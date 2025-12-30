@@ -11,7 +11,7 @@ def _load_embedding_model():
     """Load the speech_embedding model (cached)"""
     _logger.info("Loading speech_embedding model...")
     opts = ort.SessionOptions()
-    opts.intra_op_num_threads = 1 
+    opts.intra_op_num_threads = os.getenv("ONNX_INTRA_THREADS",8)
     model_file = files('lwake.models') / 'speech-embedding.onnx'
     session = ort.InferenceSession(model_file, opts, providers=["CPUExecutionProvider"])
     _logger.info("Model loaded successfully")
