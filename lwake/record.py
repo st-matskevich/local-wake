@@ -1,7 +1,9 @@
 import sounddevice as sd
 import soundfile as sf
+import numpy as np
 import logging
 from silero_vad import load_silero_vad, get_speech_timestamps
+from contextlib import nullcontext
 
 _logger = logging.getLogger("local-wake")
 
@@ -24,12 +26,20 @@ def trim_silence_with_vad(audio, sample_rate):
     _logger.info(f"Trimmed audio to [{start_sample/sample_rate:.2f}s, {end_sample/sample_rate:.2f}s]")
     return audio[start_sample:end_sample]
 
-def record(output, duration=3, trim_silence=True):
+def record(output, duration=3, trim_silence=True, stream=None):
     """Record audio and save as WAV file"""
     _logger.info(f"Recording for {duration} seconds...")
-    sample_rate=16000
-    audio = sd.rec(int(duration * sample_rate), samplerate=sample_rate, channels=1, dtype='int16')
-    sd.wait()
+
+    if stream is None:
+        cm = sd.InputStream(samplerate=16000, channels=1, dtype=np.float32)
+    else:
+        cm = nullcontext(stream)
+
+    with cm as stream:
+        sample_rate = int(stream.samplerate)
+        audio, overflowed = stream.read(duration * sample_rate)
+        if overflowed:
+            _logger.warning("Audio buffer overflowed")
 
     if trim_silence:
         _logger.info("Trimming silence using VAD...")
