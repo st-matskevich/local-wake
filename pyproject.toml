@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "local-wake"
-version = "0.1.0"
+version = "0.1.1"
 description = "Lightweight local wake word detection that recognizes phrases with just a few user-provided recordings. No model training required."
 authors = [{ name = "Stanislau Matskevich", email="st.matskevich@gmail.com" }]
 readme = "README.md"
