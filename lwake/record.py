@@ -5,6 +5,7 @@ import logging
 from silero_vad import load_silero_vad, get_speech_timestamps
 from contextlib import nullcontext
 
+MIN_SAMPLES = 12400
 _logger = logging.getLogger("local-wake")
 
 def trim_silence_with_vad(audio, sample_rate):
@@ -26,6 +27,17 @@ def trim_silence_with_vad(audio, sample_rate):
     _logger.info(f"Trimmed audio to [{start_sample/sample_rate:.2f}s, {end_sample/sample_rate:.2f}s]")
     return audio[start_sample:end_sample]
 
+def pad_audio(audio, target_length):
+    if len(audio) >= target_length:
+        return audio
+    
+    pad_total = target_length - len(audio)
+    pad_left = pad_total // 2
+    pad_right = pad_total - pad_left
+
+    _logger.info(f"Padding audio with [{pad_left}, {pad_right}] frames")
+    return np.pad(audio, [(pad_left, pad_right), (0, 0)], mode='constant')
+
 def record(output, duration=3, trim_silence=True, stream=None):
     """Record audio and save as WAV file"""
     _logger.info(f"Recording for {duration} seconds...")
@@ -44,6 +56,8 @@ def record(output, duration=3, trim_silence=True, stream=None):
     if trim_silence:
         _logger.info("Trimming silence using VAD...")
         audio = trim_silence_with_vad(audio, sample_rate)
+
+    audio = pad_audio(audio, MIN_SAMPLES)
         
     sf.write(output, audio, samplerate=sample_rate)
     _logger.info(f"Saved to {output}")
